@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         轻之国度下载器
 // @namespace    https://github.com/RRRRUDDDD/Lightnovel_Downloader
-// @version      1.5.0
+// @version      1.5.1
 // @description  下载 lightnovel.fun 书籍/章节为 TXT 或 EPUB
 // @author       RUD
 // @match        https://www.lightnovel.fun/book/*
@@ -59,7 +59,7 @@ var XHTML_HTML_OPEN='<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN"
 function xhtmlDocument(body){return XHTML_DOCTYPE+'\n\n'+XHTML_HTML_OPEN+'\n<head>\n  <title></title>\n  <link href="../Styles/style.css" type="text/css" rel="stylesheet"/>\n</head>\n\n<body>\n'+String(body||'')+'\n\n</body>\n</html>'}
 function unescapeXml(value){return String(value||'').replace(/&amp;/gi,'&').replace(/&quot;/gi,'"').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#39;/gi,"'")}
 function imageAlt(src,attrs){var clean=String(src||'').split(/[?#]/)[0],match=clean.match(/(?:^|\/)([^/]+?)(?:\.[^./]*)?$/),alt=match&&match[1]||'';return alt||((String(attrs||'').match(/\balt\s*=\s*["']([^"']*)["']/i)||[])[1]||'图片')}
-function wrapXhtmlImages(body){return String(body||'').replace(/<img\b([^>]*)\/?>(?:<\/img>)?/gi,function(_,attrs){var src=unescapeXml((attrs.match(/\bsrc\s*=\s*["']([^"']+)["']/i)||[])[1]||''),alt=imageAlt(src,attrs);return '<div class="illus duokan-image-single"><img alt="'+esc(alt)+'" src="'+esc(src)+'"/></div>'})}
+function wrapXhtmlImages(body){var build=function(attrs){var src=unescapeXml((attrs.match(/\bsrc\s*=\s*["']([^"']+)["']/i)||[])[1]||''),alt=imageAlt(src,attrs);return '<div class="illus duokan-image-single"><img alt="'+esc(alt)+'" src="'+esc(src)+'"/></div>'};return String(body||'').replace(/<div class="illus duokan-image-single">[\s\S]{0,400}?<\/div>|<p\b[^>]*>(?:\s|<br\s*\/?>)*<img\b([^>]*)\/?>(?:<\/img>)?(?:\s|<br\s*\/?>)*<\/p>|<img\b([^>]*)\/?>(?:<\/img>)?/gi,function(match,pAttrs,attrs){return pAttrs!==undefined?build(pAttrs):attrs!==undefined?build(attrs):match})}
 function normalizeXhtmlDocument(name,data){var match=String(data||'').match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);if(!match)return data;var body=match[1];if(/\/cover\.xhtml$/i.test(String(name))){var src=(body.match(/<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/i)||[])[1]||'';body='<div class="cover illus"><img alt="cover" class="coverborder" src="'+esc(src)+'"/></div>'}else body=wrapXhtmlImages(body);return xhtmlDocument(body)}
 function xhtml(c,imgMap){var h=sanitizeContent(c.html,imgMap);return '<h2>'+esc(c.title||'未命名章节')+'</h2>'+(c.subtitle?'<p class="sub">'+esc(c.subtitle)+'</p>':'')+h}
 async function buildEpub2(x,embed){
